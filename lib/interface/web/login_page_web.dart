@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/auth_service.dart';
+import '../../core/session_service.dart';
 import '../dashboard_page.dart';
 
 class LoginPageWeb extends StatefulWidget {
@@ -41,6 +42,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
 
       if (mounted) {
         if (result['success']) {
+          await SessionService.saveSession(result['user']);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message']),

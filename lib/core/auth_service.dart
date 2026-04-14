@@ -70,6 +70,8 @@ class AuthService {
         } else if (Platform.isWindows) {
           final windowsInfo = await deviceInfo.windowsInfo;
           deviceName = windowsInfo.computerName;
+        } else {
+          deviceName = 'Unknown Device';
         }
       }
     } catch (e) {

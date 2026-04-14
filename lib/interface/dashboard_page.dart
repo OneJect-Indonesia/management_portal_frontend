@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flip_card/flip_card.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/user_model.dart';
 import '../models/dashboard_model.dart';
 import '../core/dashboard_service.dart';
+import '../core/session_service.dart';
 import 'login_page.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -100,11 +103,14 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-                (route) => false,
-              );
+            onPressed: () async {
+              await SessionService.clearSession();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (route) => false,
+                );
+              }
             },
           ),
         ],
@@ -283,13 +289,32 @@ class _DashboardPageState extends State<DashboardPage> {
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                    onTap: () {
-                      // Handle navigation or action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Opening ${item.module.moduleName}'),
-                        ),
-                      );
+                    onTap: () async {
+                      if (kIsWeb) {
+                        final uri = Uri.parse(item.content.repo);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, webOnlyWindowName: '_self');
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Could not open ${item.module.moduleName}',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        // TODO: Implement mobile native launcher here (e.g. url_launcher without _self, or intent)
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Mobile: Membuka ${item.module.moduleName}',
+                            ),
+                          ),
+                        );
+                      }
                     },
                   );
                 },
