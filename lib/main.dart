@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'interface/login_page.dart';
 import 'interface/dashboard_page.dart';
-import 'core/session_service.dart';
 import 'core/dashboard_service.dart';
+import 'core/app_theme.dart';
+import 'providers/auth_provider.dart';
+import 'providers/dashboard_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,14 +16,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Application Portal',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+      ],
+      child: MaterialApp(
+        title: 'Application Portal',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        home: const AuthWrapper(),
       ),
-      home: const AuthWrapper(),
     );
   }
 }
@@ -34,41 +40,37 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
   bool _isLoading = true;
-  Widget? _homeWidget;
 
   @override
   void initState() {
     super.initState();
-    _checkLogin();
+    _initializeApp();
   }
 
-  Future<void> _checkLogin() async {
-    final user = await SessionService.getSession();
-    if (user != null) {
-      // Validasi token dengan endpoint /my-dashboard
-      final dashboardService = DashboardService();
-      final dashboardData = await dashboardService.getDashboardData(user.token);
+  Future<void> _initializeApp() async {
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.checkSession();
 
-      // Jika data berhasil diambil, maka sesi masih aktif (token belum expired).
-      // Catatan: DashboardPage nantinya akan nge-fetch ulang dasboardData karena ada logic fetch di sana,
-      // tapi secara UI ini juga berfungsi memastikan token terverifikasi di backend.
-      if (dashboardData != null) {
-        setState(() {
-          _homeWidget = DashboardPage(user: user);
-          _isLoading = false;
-        });
-        return;
-      } else {
-        // Token tidak valid/expired, hapus sesi di lokal
-        await SessionService.clearSession();
+    final user = authProvider.currentUser;
+
+    if (user != null) {
+      try {
+        final dashboardService = DashboardService();
+        await dashboardService.getDashboardData(user.token);
+      } on UnauthorizedException {
+        // Hanya force-logout jika token ditolak server
+        await authProvider.logout();
+      } catch (e) {
+        // Jika internet terputus, dsb., biarkan user masuk menggunakan sesi cache
+        debugPrint('[AuthWrapper] Safe exception (e.g. no internet): $e');
       }
     }
 
-    // Jika tidak ada user atau token expire
-    setState(() {
-      _homeWidget = const LoginPage();
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -80,6 +82,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
         ),
       );
     }
-    return _homeWidget!;
+
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) {
+        if (auth.isAuthenticated) {
+          return const DashboardPage();
+        } else {
+          return const LoginPage();
+        }
+      },
+    );
   }
 }

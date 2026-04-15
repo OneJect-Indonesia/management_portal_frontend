@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/auth_service.dart';
-import '../../core/session_service.dart';
-import '../dashboard_page.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class LoginPageWeb extends StatefulWidget {
   const LoginPageWeb({super.key});
@@ -14,9 +13,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
   bool _isObscured = true;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,34 +24,22 @@ class _LoginPageWebState extends State<LoginPageWeb> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      final result = await _authService.login(
+      final authProvider = context.read<AuthProvider>();
+      
+      final result = await authProvider.login(
         _emailController.text,
         _passwordController.text,
       );
 
-      setState(() {
-        _isLoading = false;
-      });
-
       if (mounted) {
         if (result['success']) {
-          await SessionService.saveSession(result['user']);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message']),
               backgroundColor: Colors.green,
             ),
           );
-
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => DashboardPage(user: result['user']),
-            ),
-          );
+          // Auto-redirect ditangani oleh MultiProvider di main.dart
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -69,6 +54,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
 
   @override
   Widget build(BuildContext context) {
+    final _isLoading = context.watch<AuthProvider>().isLoading;
     return Scaffold(
       backgroundColor: Colors.grey[50], // Light background for web
       body: Center(

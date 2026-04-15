@@ -2,18 +2,19 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/dashboard_model.dart';
-// import 'auth_service.dart'; // To get the base URL if needed, or define it here
+
+class UnauthorizedException implements Exception {}
+class NetworkException implements Exception {
+  final String message;
+  NetworkException([this.message = 'Network error occurred.']);
+}
 
 class DashboardService {
-  // Using the same IP as AuthService.
-  // Ideally, this should be in a shared config file.
   static const String _baseUrl = 'http://127.0.0.1:80/api/v1';
 
   Future<DashboardData?> getDashboardData(String token) async {
     try {
-      debugPrint(
-        '[DashboardService] Fetching dashboard with token: ${token.substring(0, token.length.clamp(0, 20))}...',
-      );
+      debugPrint('[DashboardService] Fetching dashboard Data...');
 
       final response = await http.get(
         Uri.parse('$_baseUrl/my-dashboard'),
@@ -22,42 +23,28 @@ class DashboardService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(const Duration(seconds: 15)); // adding reasonable timeout
 
-      debugPrint('[DashboardService] Status: ${response.statusCode}');
-      debugPrint('[DashboardService] Body: ${response.body}');
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw UnauthorizedException();
+      }
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        debugPrint('[DashboardService] status field: ${data['status']}');
-        debugPrint(
-          '[DashboardService] data field type: ${data['data']?.runtimeType}',
-        );
-
         if (data['status'] == 'success') {
-          // data['data'] adalah List (flat array), bukan Map.
-          // Gunakan fromList yang mengelompokkan berdasarkan module.category.
           final rawList = data['data'] as List<dynamic>;
-          final dashboardData = DashboardData.fromList(rawList);
-          debugPrint(
-            '[DashboardService] Categories parsed: ${dashboardData.categories.keys.toList()}',
-          );
-          return dashboardData;
-        } else {
-          debugPrint(
-            '[DashboardService] status != success, got: ${data['status']}',
-          );
+          return DashboardData.fromList(rawList);
         }
-      } else {
-        debugPrint(
-          '[DashboardService] Non-200 status: ${response.statusCode}, body: ${response.body}',
-        );
       }
-      return null;
-    } catch (e, stackTrace) {
+
+      // Instead of silently failing for 500s or others, throw NetworkException
+      throw NetworkException('Failed with status: ${response.statusCode}');
+      
+    } on UnauthorizedException {
+      rethrow; // Pass up
+    } catch (e) {
       debugPrint('[DashboardService] ERROR: $e');
-      debugPrint('[DashboardService] StackTrace: $stackTrace');
-      return null;
+      throw NetworkException(e.toString());
     }
   }
 }
