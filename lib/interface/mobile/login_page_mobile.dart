@@ -25,7 +25,7 @@ class _LoginPageMobileState extends State<LoginPageMobile> {
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = context.read<AuthProvider>();
-      
+
       final result = await authProvider.login(
         _emailController.text,
         _passwordController.text,
@@ -55,7 +55,7 @@ class _LoginPageMobileState extends State<LoginPageMobile> {
 
   @override
   Widget build(BuildContext context) {
-    final _isLoading = context.watch<AuthProvider>().isLoading;
+    final isLoading = context.watch<AuthProvider>().isLoading;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -180,14 +180,14 @@ class _LoginPageMobileState extends State<LoginPageMobile> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
+                        onPressed: isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 2,
                         ),
-                        child: _isLoading
+                        child: isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
