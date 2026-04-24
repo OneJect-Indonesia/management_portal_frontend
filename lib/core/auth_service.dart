@@ -8,7 +8,7 @@ import '../models/user_model.dart';
 class AuthService {
   // Use localhost for web, and 10.0.2.2 for Android emulator to access localhost
   // Allowing the URL to be configured or using a smarter default would be better in production
-  static const String _baseUrl = 'http://10.236.160.97:8000/api/v1';
+  static const String _baseUrl = 'http://127.0.0.1:80/api/v1';
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
@@ -70,6 +70,8 @@ class AuthService {
         } else if (Platform.isWindows) {
           final windowsInfo = await deviceInfo.windowsInfo;
           deviceName = windowsInfo.computerName;
+        } else {
+          deviceName = 'Unknown Device';
         }
       }
     } catch (e) {

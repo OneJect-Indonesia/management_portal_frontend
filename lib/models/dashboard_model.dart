@@ -12,13 +12,25 @@ class DashboardData {
     });
     return DashboardData(categories: categories);
   }
+
+  /// Digunakan saat API mengembalikan data sebagai flat List.
+  /// Item dikelompokkan otomatis berdasarkan field module.category.
+  factory DashboardData.fromList(List<dynamic> list) {
+    final Map<String, List<MenuItem>> categories = {};
+    for (final item in list) {
+      final menuItem = MenuItem.fromJson(item as Map<String, dynamic>);
+      final category = menuItem.module.category;
+      categories.putIfAbsent(category, () => []).add(menuItem);
+    }
+    return DashboardData(categories: categories);
+  }
 }
 
 class MenuItem {
   final int id;
   final String menuName;
   final int displayOrder;
-  final int isActive;
+  final bool isActive;
   final Module module;
   final Content content;
 
@@ -31,14 +43,19 @@ class MenuItem {
     required this.content,
   });
 
+  bool get isActiveAsBool => isActive;
+
   factory MenuItem.fromJson(Map<String, dynamic> json) {
+    // is_active bisa datang sebagai bool atau int (0/1) dari API
+    final rawActive = json['is_active'];
+    final isActive = rawActive is bool ? rawActive : (rawActive == 1);
     return MenuItem(
-      id: json['id'],
-      menuName: json['menu_name'],
-      displayOrder: json['display_order'],
-      isActive: json['is_active'],
-      module: Module.fromJson(json['module']),
-      content: Content.fromJson(json['content']),
+      id: json['id'] ?? 0,
+      menuName: json['menu_name'] ?? '',
+      displayOrder: json['display_order'] ?? 0,
+      isActive: isActive,
+      module: Module.fromJson(json['module'] as Map<String, dynamic>? ?? {}),
+      content: Content.fromJson(json['content'] as Map<String, dynamic>? ?? {}),
     );
   }
 }
@@ -58,10 +75,10 @@ class Module {
 
   factory Module.fromJson(Map<String, dynamic> json) {
     return Module(
-      id: json['id'],
-      moduleName: json['module_name'],
-      moduleDescription: json['module_description'],
-      category: json['category'],
+      id: json['id'] ?? 0,
+      moduleName: json['module_name'] ?? '',
+      moduleDescription: json['module_description'] ?? '',
+      category: json['category'] ?? '',
     );
   }
 }
@@ -81,10 +98,10 @@ class Content {
 
   factory Content.fromJson(Map<String, dynamic> json) {
     return Content(
-      type: json['type'],
-      title: json['title'],
-      version: json['version'],
-      repo: json['repo'],
+      type: json['type'] ?? '',
+      title: json['title'] ?? '',
+      version: json['version'] ?? '',
+      repo: json['repo'] ?? '',
     );
   }
 }

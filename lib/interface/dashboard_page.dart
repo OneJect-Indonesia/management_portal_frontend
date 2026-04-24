@@ -1,166 +1,134 @@
 import 'package:flutter/material.dart';
-import 'package:flip_card/flip_card.dart';
-import '../models/user_model.dart';
-import '../models/dashboard_model.dart';
-import '../core/dashboard_service.dart';
-import 'login_page.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/dashboard_provider.dart';
+import 'widgets/category_card.dart';
+import 'widgets/system_item_card.dart';
+import '../core/app_colors.dart';
 
 class DashboardPage extends StatefulWidget {
-  final UserModel user;
-
-  const DashboardPage({super.key, required this.user});
+  const DashboardPage({super.key});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final _dashboardService = DashboardService();
-  DashboardData? _dashboardData;
-  bool _isLoading = true;
-
-  // Track the currently expanded category
-  String? _expandedCategory;
-  final Map<String, GlobalKey<FlipCardState>> _cardKeys = {};
-
   @override
   void initState() {
     super.initState();
-    _fetchData();
-  }
-
-  Future<void> _fetchData() async {
-    final data = await _dashboardService.getDashboardData(widget.user.token);
-    if (mounted) {
-      setState(() {
-        _dashboardData = data;
-        _isLoading = false;
-
-        // Initialize keys for each category
-        if (_dashboardData != null) {
-          for (var category in _dashboardData!.categories.keys) {
-            _cardKeys[category] = GlobalKey<FlipCardState>();
-          }
-        }
-      });
-    }
-  }
-
-  void _onCardTap(String category) {
-    // Logic:
-    // 1. Default card is false (closed).
-    // 2. If user presses a card (that is currently closed/false):
-    //    a. Check if there is any card true (open).
-    //    b. If yes, make it false (flip back).
-    //    c. Make the pressed card true (flip open).
-
-    // If another card is currently expanded
-    if (_expandedCategory != null && _expandedCategory != category) {
-      // Close the previously expanded card
-      _cardKeys[_expandedCategory]?.currentState?.toggleCard();
-    }
-
-    // Update the expanded category to the new one
-    setState(() {
-      _expandedCategory = category;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().currentUser;
+      if (user != null) {
+        context.read<DashboardProvider>().fetchData(user.token);
+      }
     });
-
-    // Open the clicked card
-    _cardKeys[category]?.currentState?.toggleCard();
-  }
-
-  void _onHeaderTap(String category) {
-    // Optional: Allow closing by tapping the header of the open card
-    if (_expandedCategory == category) {
-      _cardKeys[category]?.currentState?.toggleCard();
-      setState(() {
-        _expandedCategory = null;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final dashboard = context.watch<DashboardProvider>();
+    final user = auth.currentUser;
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black87,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Center(
-              child: Text(
-                widget.user.fullName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-                (route) => false,
-              );
-            },
-          ),
-        ],
-      ),
-      body: _isLoading
+      backgroundColor: AppColors.background,
+      body: dashboard.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _dashboardData == null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text('Failed to load dashboard data'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      _fetchData();
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(24.0),
+          : dashboard.error != null || dashboard.dashboardData == null
+          ? _buildErrorView(context, dashboard, user.token)
+          : SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // Responsive grid count based on width
-                  int crossAxisCount = constraints.maxWidth > 1200
-                      ? 4
-                      : constraints.maxWidth > 800
-                      ? 3
-                      : constraints.maxWidth > 600
-                      ? 2
-                      : 1;
+                  bool isDesktop = constraints.maxWidth > 900;
+                  return Row(
+                    children: [
+                      // Left Sidebar / Category List
+                      Container(
+                        width: isDesktop ? 400 : constraints.maxWidth,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 32),
+                            _buildUserHeader(user.fullName, auth),
+                            const SizedBox(height: 40),
+                            const Text(
+                              'Application Categories',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount:
+                                    dashboard.dashboardData!.categories.length,
+                                itemBuilder: (context, index) {
+                                  final category = dashboard
+                                      .dashboardData!
+                                      .categories
+                                      .keys
+                                      .elementAt(index);
+                                  final items = dashboard
+                                      .dashboardData!
+                                      .categories[category]!;
+                                  return CategoryCard(
+                                    category: category,
+                                    itemCount: items.length,
+                                    isSelected:
+                                        dashboard.selectedCategory == category,
+                                    onTap: () {
+                                      dashboard.selectCategory(category);
+                                      if (!isDesktop) {
+                                        _showMobileItems(
+                                          context,
+                                          category,
+                                          items,
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-                  return GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 24,
-                      mainAxisSpacing: 24,
-                      childAspectRatio:
-                          0.8, // Adjust aspect ratio for card height
-                    ),
-                    itemCount: _dashboardData!.categories.length,
-                    itemBuilder: (context, index) {
-                      final category = _dashboardData!.categories.keys
-                          .elementAt(index);
-                      final items = _dashboardData!.categories[category]!;
-
-                      return _buildFlipCard(category, items);
-                    },
+                      // Right Content Area (Desktop only)
+                      if (isDesktop)
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(32),
+                              border: Border.all(color: Colors.cyan.shade50),
+                            ),
+                            child: dashboard.selectedCategory == null
+                                ? const Center(
+                                    child: Text(
+                                      'Select a category to view systems',
+                                    ),
+                                  )
+                                : _buildItemsList(
+                                    dashboard.selectedCategory!,
+                                    dashboard
+                                        .dashboardData!
+                                        .categories[dashboard
+                                        .selectedCategory]!,
+                                  ),
+                          ),
+                        ),
+                    ],
                   );
                 },
               ),
@@ -168,151 +136,154 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildFlipCard(String category, List<MenuItem> items) {
-    return FlipCard(
-      key: _cardKeys[category],
-      flipOnTouch: false, // We handle taps manually
-      front: GestureDetector(
-        onTap: () => _onCardTap(category),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          color: Colors.white,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withOpacity(0.7),
-                ],
+  Widget _buildUserHeader(String name, AuthProvider auth) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 24,
+          backgroundColor: AppColors.primary.withOpacity(0.1),
+          child: const Icon(Icons.person_rounded, color: AppColors.primary),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Welcome back,',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(_getCategoryIcon(category), size: 64, color: Colors.white),
-                const SizedBox(height: 16),
-                Text(
-                  category.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.2,
-                  ),
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${items.length} Systems',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      ),
-      back: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: Colors.white,
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: () => _onHeaderTap(category),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
+        IconButton(
+          onPressed: () => auth.logout(),
+          icon: const Icon(Icons.logout_rounded, color: AppColors.error),
+          tooltip: 'Logout',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemsList(String category, List<dynamic> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Row(
+            children: [
+              Text(
+                category.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${items.length} Systems',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      category.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.close, size: 16, color: Colors.grey),
-                  ],
-                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              return SystemItemCard(item: items[index]);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showMobileItems(
+    BuildContext context,
+    String category,
+    List<dynamic> items,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.all(8),
-                itemCount: items.length,
-                separatorBuilder: (context, index) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return ListTile(
-                    title: Text(
-                      item.module.moduleName,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      item.module.moduleDescription,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                    onTap: () {
-                      // Handle navigation or action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Opening ${item.module.moduleName}'),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
+            Expanded(child: _buildItemsList(category, items)),
           ],
         ),
       ),
     );
   }
 
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'sd':
-        return Icons.shopping_cart_outlined;
-      case 'mm':
-        return Icons.inventory_2_outlined;
-      case 'fico':
-        return Icons.attach_money;
-      case 'pp':
-        return Icons.factory_outlined;
-      default:
-        return Icons.grid_view;
-    }
+  Widget _buildErrorView(
+    BuildContext context,
+    DashboardProvider dashboard,
+    String token,
+  ) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 64,
+            color: AppColors.error,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            dashboard.error ?? 'Failed to load dashboard',
+            style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () => dashboard.fetchData(token),
+            style: ElevatedButton.styleFrom(minimumSize: const Size(200, 56)),
+            child: const Text('Retry Connection'),
+          ),
+        ],
+      ),
+    );
   }
 }
