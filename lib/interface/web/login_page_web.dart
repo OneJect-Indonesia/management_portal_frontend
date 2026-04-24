@@ -124,7 +124,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                               ),
                               const SizedBox(height: 40),
                               const Text(
-                                'PT Oneject Indonesia\nSystemManagement Portal',
+                                'PT Oneject Indonesia\nSystem Management Portal',
                                 style: TextStyle(
                                   fontSize: 40,
                                   fontWeight: FontWeight.bold,

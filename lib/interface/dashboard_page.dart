@@ -40,80 +40,99 @@ class _DashboardPageState extends State<DashboardPage> {
       body: dashboard.isLoading
           ? const Center(child: CircularProgressIndicator())
           : dashboard.error != null || dashboard.dashboardData == null
-              ? _buildErrorView(context, dashboard, user.token)
-              : SafeArea(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      bool isDesktop = constraints.maxWidth > 900;
-                      return Row(
-                        children: [
-                          // Left Sidebar / Category List
-                          Container(
-                            width: isDesktop ? 400 : constraints.maxWidth,
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 32),
-                                _buildUserHeader(user.fullName, auth),
-                                const SizedBox(height: 40),
-                                const Text(
-                                  'Application Categories',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary,
-                                    letterSpacing: 1.1,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Expanded(
-                                  child: ListView.builder(
-                                    itemCount: dashboard.dashboardData!.categories.length,
-                                    itemBuilder: (context, index) {
-                                      final category = dashboard.dashboardData!.categories.keys.elementAt(index);
-                                      final items = dashboard.dashboardData!.categories[category]!;
-                                      return CategoryCard(
-                                        category: category,
-                                        itemCount: items.length,
-                                        isSelected: dashboard.selectedCategory == category,
-                                        onTap: () {
-                                          dashboard.selectCategory(category);
-                                          if (!isDesktop) {
-                                            _showMobileItems(context, category, items);
-                                          }
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Right Content Area (Desktop only)
-                          if (isDesktop)
-                            Expanded(
-                              child: Container(
-                                margin: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.5),
-                                  borderRadius: BorderRadius.circular(32),
-                                  border: Border.all(color: Colors.cyan.shade50),
-                                ),
-                                child: dashboard.selectedCategory == null
-                                    ? const Center(child: Text('Select a category to view systems'))
-                                    : _buildItemsList(
-                                        dashboard.selectedCategory!,
-                                        dashboard.dashboardData!.categories[dashboard.selectedCategory]!,
-                                      ),
+          ? _buildErrorView(context, dashboard, user.token)
+          : SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  bool isDesktop = constraints.maxWidth > 900;
+                  return Row(
+                    children: [
+                      // Left Sidebar / Category List
+                      Container(
+                        width: isDesktop ? 400 : constraints.maxWidth,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 32),
+                            _buildUserHeader(user.fullName, auth),
+                            const SizedBox(height: 40),
+                            const Text(
+                              'Application Categories',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary,
+                                letterSpacing: 1.1,
                               ),
                             ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount:
+                                    dashboard.dashboardData!.categories.length,
+                                itemBuilder: (context, index) {
+                                  final category = dashboard
+                                      .dashboardData!
+                                      .categories
+                                      .keys
+                                      .elementAt(index);
+                                  final items = dashboard
+                                      .dashboardData!
+                                      .categories[category]!;
+                                  return CategoryCard(
+                                    category: category,
+                                    itemCount: items.length,
+                                    isSelected:
+                                        dashboard.selectedCategory == category,
+                                    onTap: () {
+                                      dashboard.selectCategory(category);
+                                      if (!isDesktop) {
+                                        _showMobileItems(
+                                          context,
+                                          category,
+                                          items,
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Right Content Area (Desktop only)
+                      if (isDesktop)
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(32),
+                              border: Border.all(color: Colors.cyan.shade50),
+                            ),
+                            child: dashboard.selectedCategory == null
+                                ? const Center(
+                                    child: Text(
+                                      'Select a category to view systems',
+                                    ),
+                                  )
+                                : _buildItemsList(
+                                    dashboard.selectedCategory!,
+                                    dashboard
+                                        .dashboardData!
+                                        .categories[dashboard
+                                        .selectedCategory]!,
+                                  ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
     );
   }
 
@@ -172,7 +191,10 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -202,7 +224,11 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  void _showMobileItems(BuildContext context, String category, List<dynamic> items) {
+  void _showMobileItems(
+    BuildContext context,
+    String category,
+    List<dynamic> items,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -224,19 +250,27 @@ class _DashboardPageState extends State<DashboardPage> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            _buildItemsList(category, items),
+            Expanded(child: _buildItemsList(category, items)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildErrorView(BuildContext context, DashboardProvider dashboard, String token) {
+  Widget _buildErrorView(
+    BuildContext context,
+    DashboardProvider dashboard,
+    String token,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded, size: 64, color: AppColors.error),
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 64,
+            color: AppColors.error,
+          ),
           const SizedBox(height: 24),
           Text(
             dashboard.error ?? 'Failed to load dashboard',
