@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/dashboard_model.dart';
 import '../../core/app_colors.dart';
+import '../../providers/auth_provider.dart';
+import '../../core/dashboard_service.dart';
 
 class SystemItemCard extends StatelessWidget {
   final MenuItem item;
@@ -29,26 +32,73 @@ class SystemItemCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () async {
-            final uri = Uri.parse(item.content.repo);
-            if (kIsWeb) {
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, webOnlyWindowName: '_self');
+            // Tampilkan indikator loading transparan
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              barrierColor: Colors.white.withOpacity(0.5),
+              builder: (BuildContext context) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
+                );
+              },
+            );
+
+            try {
+              // Ambil token dari AuthProvider
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              final token = authProvider.currentUser?.token;
+
+              if (token == null) {
+                throw Exception('No authentication token found');
+              }
+
+              // Panggil API getSsoTicket
+              final dashboardService = DashboardService();
+              final ssoTicket = await dashboardService.fetchSsoTicket(token);
+
+              // Tutup dialog loading
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
+
+              // Gabungkan URL repo dengan sso ticket
+              final fullUrl = '${item.content.repo}/sso/verify?ticket=$ssoTicket';
+              final uri = Uri.parse(fullUrl);
+
+              if (kIsWeb) {
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, webOnlyWindowName: '_self');
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Could not open ${item.module.moduleName}')),
+                    );
+                  }
+                }
               } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Could not open ${item.module.moduleName}')),
-                  );
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Could not open ${item.module.moduleName}')),
+                    );
+                  }
                 }
               }
-            } else {
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri);
-              } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Could not open ${item.module.moduleName}')),
-                  );
-                }
+            } catch (e) {
+              // Tutup dialog loading jika terjadi error
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Gagal mendapatkan akses: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             }
           },

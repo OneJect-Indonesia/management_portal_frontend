@@ -47,4 +47,37 @@ class DashboardService {
       throw NetworkException(e.toString());
     }
   }
+
+  Future<String> fetchSsoTicket(String token) async {
+    try {
+      debugPrint('[DashboardService] Fetching SSO Ticket...');
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/sso-ticket'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw UnauthorizedException();
+      }
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          return data['data']['ticket'] as String;
+        }
+      }
+
+      throw NetworkException('Failed to generate ticket with status: ${response.statusCode}');
+    } on UnauthorizedException {
+      rethrow;
+    } catch (e) {
+      debugPrint('[DashboardService] ERROR: $e');
+      throw NetworkException(e.toString());
+    }
+  }
 }
