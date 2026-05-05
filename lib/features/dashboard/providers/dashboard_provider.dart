@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import '../models/dashboard_model.dart';
-import '../core/dashboard_service.dart';
+import '../repositories/dashboard_repository.dart';
 
 class DashboardProvider extends ChangeNotifier {
-  final DashboardService _dashboardService = DashboardService();
+  final IDashboardRepository _dashboardRepository;
   DashboardData? _dashboardData;
   bool _isLoading = true;
   String? _error;
 
   String? _selectedCategory;
+
+  DashboardProvider(this._dashboardRepository);
 
   DashboardData? get dashboardData => _dashboardData;
   bool get isLoading => _isLoading;
@@ -21,17 +23,20 @@ class DashboardProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _dashboardData = await _dashboardService.getDashboardData(token);
-      
-      if (_dashboardData != null && _dashboardData!.categories.isNotEmpty) {
-        _selectedCategory = _dashboardData!.categories.keys.first;
-      } else if (_dashboardData == null) {
-        _error = 'Failed to load dashboard data';
+      final result = await _dashboardRepository.getDashboardData(token);
+
+      if (result.isSuccess && result.data != null) {
+        final dashboardModel = result.data!;
+        _dashboardData = dashboardModel.data;
+
+        if (_dashboardData != null && _dashboardData!.categories.isNotEmpty) {
+          _selectedCategory = _dashboardData!.categories.keys.first;
+        } else if (_dashboardData == null) {
+          _error = 'Failed to load dashboard data';
+        }
+      } else {
+        _error = result.error ?? 'Failed to load dashboard data';
       }
-    } on UnauthorizedException {
-      rethrow;
-    } on NetworkException catch (e) {
-      _error = e.message;
     } catch (e) {
       _error = e.toString();
     } finally {

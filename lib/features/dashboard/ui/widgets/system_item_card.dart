@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/dashboard_model.dart';
-import '../../core/app_colors.dart';
-import '../../providers/auth_provider.dart';
-import '../../core/dashboard_service.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../services/dashboard_service.dart';
 
 class SystemItemCard extends StatelessWidget {
   final MenuItem item;
@@ -40,7 +40,9 @@ class SystemItemCard extends StatelessWidget {
               builder: (BuildContext context) {
                 return const Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primary,
+                    ),
                   ),
                 );
               },
@@ -48,7 +50,10 @@ class SystemItemCard extends StatelessWidget {
 
             try {
               // Ambil token dari AuthProvider
-              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              final authProvider = Provider.of<AuthProvider>(
+                context,
+                listen: false,
+              );
               final token = authProvider.currentUser?.token;
 
               if (token == null) {
@@ -56,8 +61,14 @@ class SystemItemCard extends StatelessWidget {
               }
 
               // Panggil API getSsoTicket
-              final dashboardService = DashboardService();
-              final ssoTicket = await dashboardService.fetchSsoTicket(token);
+              final dashboardService = context.read<DashboardService>();
+              final result = await dashboardService.fetchSsoTicket(token);
+
+              if (!result.isSuccess || result.data == null) {
+                throw Exception(result.error ?? 'Failed to get SSO ticket');
+              }
+
+              final ssoTicket = result.data!;
 
               // Tutup dialog loading
               if (context.mounted) {
@@ -65,7 +76,8 @@ class SystemItemCard extends StatelessWidget {
               }
 
               // Gabungkan URL repo dengan sso ticket
-              final fullUrl = '${item.content.repo}/sso/verify?ticket=$ssoTicket';
+              final fullUrl =
+                  '${item.content.repo}/sso/verify?ticket=$ssoTicket';
               final uri = Uri.parse(fullUrl);
 
               if (kIsWeb) {
@@ -74,7 +86,11 @@ class SystemItemCard extends StatelessWidget {
                 } else {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Could not open ${item.module.moduleName}')),
+                      SnackBar(
+                        content: Text(
+                          'Could not open ${item.module.moduleName}',
+                        ),
+                      ),
                     );
                   }
                 }
@@ -84,7 +100,11 @@ class SystemItemCard extends StatelessWidget {
                 } else {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Could not open ${item.module.moduleName}')),
+                      SnackBar(
+                        content: Text(
+                          'Could not open ${item.module.moduleName}',
+                        ),
+                      ),
                     );
                   }
                 }
@@ -130,7 +150,10 @@ class SystemItemCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.background,
                           borderRadius: BorderRadius.circular(8),

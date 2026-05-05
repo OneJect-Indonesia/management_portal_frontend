@@ -1,6 +1,6 @@
 class UserModel {
   final int id;
-  final int nik;
+  final String nik;
   final String fullName;
   final String department;
   final String role;

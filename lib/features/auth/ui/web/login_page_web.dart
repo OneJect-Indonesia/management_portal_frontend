@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../core/app_colors.dart';
+import 'package:frontend/features/auth/providers/auth_provider.dart';
+import 'package:frontend/core/theme/app_colors.dart';
 
 class LoginPageWeb extends StatefulWidget {
   const LoginPageWeb({super.key});
@@ -33,10 +33,10 @@ class _LoginPageWebState extends State<LoginPageWeb> {
       );
 
       if (mounted) {
-        if (result['success']) {
+        if (result.isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message']),
+              content: const Text('Login successful!'),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
               width: 400,
@@ -45,7 +45,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message']),
+              content: Text(result.error ?? 'Login failed'),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
               width: 400,
@@ -104,60 +104,62 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                             backgroundColor: AppColors.white.withOpacity(0.05),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(60.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: AppColors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Icon(
-                                  Icons.health_and_safety_rounded,
-                                  size: 48,
-                                  color: AppColors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 40),
-                              const Text(
-                                'PT Oneject Indonesia\nSystem Management Portal',
-                                style: TextStyle(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.white,
-                                  height: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              Text(
-                                'Streamline your clinical workflows and application access through our unified secure gateway.',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: AppColors.white.withOpacity(0.8),
-                                  height: 1.6,
-                                ),
-                              ),
-                              const SizedBox(height: 60),
-                              Row(
-                                children: [
-                                  _buildInfoChip(
-                                    Icons.security_rounded,
-                                    'Secure',
+                        SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.all(60.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                  const SizedBox(width: 12),
-                                  _buildInfoChip(Icons.speed_rounded, 'Fast'),
-                                  const SizedBox(width: 12),
-                                  _buildInfoChip(
-                                    Icons.verified_user_rounded,
-                                    'Reliable',
+                                  child: const Icon(
+                                    Icons.health_and_safety_rounded,
+                                    size: 48,
+                                    color: AppColors.white,
                                   ),
-                                ],
-                              ),
-                            ],
+                                ),
+                                const SizedBox(height: 40),
+                                const Text(
+                                  'PT Oneject Indonesia\nSystem Management Portal',
+                                  style: TextStyle(
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.white,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'Streamline your clinical workflows and application access through our unified secure gateway.',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: AppColors.white.withOpacity(0.8),
+                                    height: 1.6,
+                                  ),
+                                ),
+                                const SizedBox(height: 60),
+                                Row(
+                                  children: [
+                                    _buildInfoChip(
+                                      Icons.security_rounded,
+                                      'Secure',
+                                    ),
+                                    const SizedBox(width: 12),
+                                    _buildInfoChip(Icons.speed_rounded, 'Fast'),
+                                    const SizedBox(width: 12),
+                                    _buildInfoChip(
+                                      Icons.verified_user_rounded,
+                                      'Reliable',
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -167,7 +169,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                 // Right side - Form
                 Expanded(
                   flex: 4,
-                  child: Padding(
+                  child: SingleChildScrollView(
                     padding: const EdgeInsets.all(60.0),
                     child: Form(
                       key: _formKey,
