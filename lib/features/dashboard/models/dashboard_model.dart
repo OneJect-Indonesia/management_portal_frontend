@@ -1,3 +1,15 @@
+class DashboardModel {
+  final String status;
+  final String message;
+  final DashboardData data;
+
+  DashboardModel({
+    required this.status,
+    required this.message,
+    required this.data,
+  });
+}
+
 class DashboardData {
   final Map<String, List<MenuItem>> categories;
 

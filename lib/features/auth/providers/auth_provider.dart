@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/result.dart';
+import '../../../data/local/session_service.dart';
 import '../models/user_model.dart';
-import '../core/auth_service.dart';
-import '../core/session_service.dart';
+import '../repositories/auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final AuthService _authService = AuthService();
+  final IAuthRepository _authRepository;
   UserModel? _currentUser;
   bool _isLoading = false;
+
+  AuthProvider(this._authRepository);
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
@@ -25,14 +28,14 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Perform login and save to session
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Result<UserModel>> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    final result = await _authService.login(email, password);
+    final result = await _authRepository.login(email, password);
 
-    if (result['success']) {
-      _currentUser = result['user'];
+    if (result.isSuccess && result.data != null) {
+      _currentUser = result.data;
       await SessionService.saveSession(_currentUser!);
     }
 
