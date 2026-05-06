@@ -6,10 +6,13 @@ import '../repositories/auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
   final IAuthRepository _authRepository;
+  final ISessionService _sessionService;
   UserModel? _currentUser;
   bool _isLoading = false;
 
-  AuthProvider(this._authRepository);
+  AuthProvider(this._authRepository, this._sessionService) {
+    checkSession();
+  }
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
@@ -17,7 +20,7 @@ class AuthProvider extends ChangeNotifier {
 
   /// Call this when the app starts to auto-login based on Secure Storage
   Future<void> checkSession() async {
-    _currentUser = await SessionService.getSession();
+    _currentUser = await _sessionService.getSession();
     notifyListeners();
   }
 
@@ -36,7 +39,7 @@ class AuthProvider extends ChangeNotifier {
 
     if (result.isSuccess && result.data != null) {
       _currentUser = result.data;
-      await SessionService.saveSession(_currentUser!);
+      await _sessionService.saveSession(_currentUser!);
     }
 
     _isLoading = false;
@@ -46,7 +49,7 @@ class AuthProvider extends ChangeNotifier {
 
   /// Logout and clear session
   Future<void> logout() async {
-    await SessionService.clearSession();
+    await _sessionService.clearSession();
     _currentUser = null;
     notifyListeners();
   }

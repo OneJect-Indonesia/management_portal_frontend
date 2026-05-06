@@ -1,0 +1,32 @@
+Analyzing frontend...                                           
+
+  error • Const variables must be initialized with a constant value • lib/core/constants/constants.dart:7:41 • const_initialized_with_non_constant_value
+  error • Const variables must be initialized with a constant value • lib/core/constants/constants.dart:8:45 • const_initialized_with_non_constant_value
+  error • Const variables must be initialized with a constant value • lib/core/constants/constants.dart:11:45 • const_initialized_with_non_constant_value
+   info • Unnecessary use of multiple underscores • lib/core/di/providers.dart:20:28 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/core/di/providers.dart:23:28 • unnecessary_underscores
+   info • 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre • lib/core/theme/app_theme.dart:12:9 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/ui/mobile/login_page_mobile.dart:82:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/ui/mobile/login_page_mobile.dart:167:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/ui/web/login_page_web.dart:73:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/ui/web/login_page_web.dart:93:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/ui/web/login_page_web.dart:104:62 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/ui/web/login_page_web.dart:117:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/ui/web/login_page_web.dart:141:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/ui/web/login_page_web.dart:289:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/mobile/dashboard_page_mobile.dart:70:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/mobile/dashboard_page_mobile.dart:158:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/web/dashboard_page_web.dart:68:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/web/dashboard_page_web.dart:93:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/web/dashboard_page_web.dart:148:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/category_card.dart:44:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/category_card.dart:51:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/category_card.dart:74:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/category_card.dart:103:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/category_card.dart:115:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/system_item_card.dart:25:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/system_item_card.dart:39:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/system_item_card.dart:163:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/ui/widgets/system_item_card.dart:175:46 • deprecated_member_use
+
+28 issues found. (ran in 1.2s)

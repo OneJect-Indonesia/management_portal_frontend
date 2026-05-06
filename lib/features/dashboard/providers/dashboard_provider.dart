@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/result.dart';
 import '../models/dashboard_model.dart';
 import '../repositories/dashboard_repository.dart';
 
@@ -48,5 +49,9 @@ class DashboardProvider extends ChangeNotifier {
   void selectCategory(String category) {
     _selectedCategory = category;
     notifyListeners();
+  }
+
+  Future<Result<String>> getSsoTicket(String token) async {
+    return await _dashboardRepository.getSsoTicket(token);
   }
 }

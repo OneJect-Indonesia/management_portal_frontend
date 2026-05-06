@@ -1,99 +1,76 @@
-# Task: Code Review & Project Restructuring
+# Application Portal - Architectural Improvements & Refactoring
 
-**Assignee:** Junior Developer
-**Reviewer:** Senior Mobile Developer
+Hi Team,
 
-## 1. Overview
+Berdasarkan hasil code review dan analisis arsitektur terbaru (referensi: `describe.md`), kita memiliki struktur *Feature-Based Clean Architecture* yang sudah cukup baik, namun masih ada beberapa *technical debt* dan *anti-pattern* yang perlu segera diselesaikan sebelum aplikasi di-scale lebih lanjut.
 
-Project ini membutuhkan _refactoring_ untuk meningkatkan _maintainability_, _scalability_, dan keterbacaan kode. Saat ini, struktur folder masih mencampur beberapa _concern_ (seperti service API di dalam folder `core`), dan implementasi Dependency Injection (DI) belum diterapkan secara konsisten.
+Task ini ditujukan untuk merapikan codebase, mematuhi prinsip *Separation of Concerns* (SoC), dan memastikan aplikasi siap untuk di-maintain dalam jangka panjang.
 
-**Catatan Penting:**
-
-- Selalu gunakan `fvm` untuk setiap command Flutter/Dart (misal: `fvm flutter pub get`, `fvm flutter test`).
+**⚠️ Penting:** Pastikan selalu menggunakan `fvm` untuk semua command (misalnya: `fvm flutter pub add <package>`).
 
 ---
 
-## 2. Code Review & Saran Perbaikan (Points of Improvement)
+## 📝 Tasks to Implement
 
-Berdasarkan _review_ kode saat ini, berikut adalah temuan dan saran perbaikan yang harus Anda implementasikan:
+Silakan selesaikan poin-poin berikut secara bertahap:
 
-### A. Penempatan File yang Kurang Tepat
+### 1. Refactor `SessionService` Menjadi Injectable (Bukan Static)
+Saat ini `SessionService` (di `lib/data/local/session_service.dart`) menggunakan *static methods*. Hal ini menyulitkan *dependency injection* dan *mocking* untuk unit testing.
 
-- **Masalah:** File service seperti `auth_service.dart` dan `dashboard_service.dart` saat ini berada di dalam folder `lib/core/`. Folder `core` seharusnya hanya berisi hal-hal yang bersifat lintas fitur (_cross-cutting concerns_) seperti _constants_, _themes_, atau _utilities_.
-- **Saran:** Pindahkan file-file service tersebut ke folder yang tepat (misalnya `lib/data/services/` atau ke dalam struktur berbasis fitur).
+**Action Items:**
+- [ ] Ubah `SessionService` menjadi *instance class* biasa (hapus keyword `static` pada method dan properties).
+- [ ] Buat interface `ISessionService` yang mendefinisikan kontraknya (`saveSession`, `getSession`, `clearSession`).
+- [ ] Implementasikan `ISessionService` pada `SessionService`.
+- [ ] Daftarkan `SessionService` di list Provider (sebaiknya di *Dependency Injection setup* yang baru, lihat Task #4).
+- [ ] Update semua pemanggilan `SessionService` di `AuthProvider` agar menggunakan dependency injection melalui konstruktor atau `context.read()`.
 
-### B. Dependency Injection (DI) Belum Konsisten
+### 2. Pisahkan Akses API dari `SystemItemCard` UI
+Terdapat pelanggaran arsitektur pada `lib/features/dashboard/ui/widgets/system_item_card.dart` di mana widget ini langsung memanggil `DashboardService.fetchSsoTicket()` alih-alih melalui layer Provider.
 
-- **Masalah:** Pada `main.dart` dan beberapa Provider, _dependencies_ (seperti Service dan Repository) diinisialisasi secara langsung di dalam kelas (contoh: `final AuthService _authService = AuthService();`). Hal ini menyulitkan saat melakukan _Unit Testing_.
-- **Saran:** Terapkan Dependency Injection. Inisialisasi Service dan Repository di `main.dart` (atau gunakan _service locator_ seperti `get_it`), lalu lewatkan (_inject_) ke dalam konstruktor Provider.
+**Action Items:**
+- [ ] Pindahkan logika pemanggilan `fetchSsoTicket` ke dalam `DashboardProvider`. Provider harus memiliki fungsi `Future<Result<String>> getSsoTicket(String token)` yang akan memanggil Repository.
+- [ ] Update widget `SystemItemCard` agar memanggil fungsi `getSsoTicket` dari `DashboardProvider` (menggunakan `context.read<DashboardProvider>()`), dan menangani loading/error state berdasarkan respons dari Provider.
 
-### C. Error Handling
+### 3. Implementasi Responsive Split pada Dashboard
+Halaman login sudah mengimplementasikan pemisahan responsif yang baik antara mobile dan web. Hal yang sama harus diaplikasikan ke Dashboard.
 
-- **Masalah:** Menangkap error hanya dengan blok `catch` biasa dan mencetaknya (meskipun sudah menggunakan logger).
-- **Saran:** Buat kelas _wrapper_ untuk _response_ seperti `Result<T>` atau gunakan _package_ seperti `dartz` (tipe `Either<Failure, Data>`) agar _error handling_ dari Service ke Provider lebih terstruktur.
+**Action Items:**
+- [ ] Buat dua file baru: `lib/features/dashboard/ui/mobile/dashboard_page_mobile.dart` dan `lib/features/dashboard/ui/web/dashboard_page_web.dart`.
+- [ ] Pindahkan UI khusus web/desktop dari `dashboard_page.dart` ke `dashboard_page_web.dart`.
+- [ ] Pindahkan UI list bottom sheet/mobile view dari `dashboard_page.dart` ke `dashboard_page_mobile.dart`.
+- [ ] Ubah `lib/features/dashboard/ui/dashboard_page.dart` menjadi semata-mata sebuah *wrapper* menggunakan `LayoutBuilder` (breakpoint ~900px) yang me-return *mobile* atau *web* page, sama seperti pola pada `login_page.dart`.
 
-### D. Testing
+### 4. Dekomposisi Tanggung Jawab di `main.dart`
+File `main.dart` saat ini terlalu gemuk. Mengurus inisiasi *app*, *provider injection*, setup *theme*, sekaligus *AuthWrapper* dan *routing*.
 
-- **Masalah:** Belum ada _coverage_ test yang memadai untuk komponen UI.
-- **Saran:** Tambahkan _Widget Test_ untuk halaman utama seperti `LoginPage` dan `DashboardPage`. (Unit test dasar sudah mulai disiapkan di `test/unit/`, jalankan menggunakan `fvm flutter test`).
+**Action Items:**
+- [ ] Pindahkan setup `MultiProvider` list ke file terpisah, misalnya di `lib/core/di/providers.dart`.
+- [ ] Buat file `lib/app.dart` yang berisi widget `MyApp` (mengembalikan `MaterialApp` dengan *theme* dan *router*).
+- [ ] Buat agar file `lib/main.dart` sebersih mungkin, idealnya hanya berisi fungsi `void main() => runApp(const MyApp());` atau inisialisasi dasar lainnya.
 
----
+### 5. Setup Environment Configuration
+URL API saat ini di-*hardcode*. Kita butuh konfigurasi *environment* yang dinamis.
 
-## 3. Tugas: Perbaiki Struktur Folder (Folder Restructuring)
+**Action Items:**
+- [ ] Buat file `lib/core/config/env_config.dart`.
+- [ ] Implementasikan *class* konstan atau *enum* yang bisa mengembalikan `apiBaseUrl` berdasarkan current environment (misal: `dev`, `staging`, `production`).
+- [ ] Update `AppConstants.apiBaseUrl` atau semua Service terkait agar memanggil *base URL* dari konfigurasi *environment* ini alih-alih string *hardcoded*.
 
-Kita akan beralih dari struktur folder saat ini ke **Feature-First Architecture** (atau Clean Architecture sederhana) agar kode lebih modular.
+### 6. Implementasi Routing Berbasis `go_router`
+Navigasi manual berbasis *state* di `AuthWrapper` menyulitkan penambahan rute baru dan *deep linking*.
 
-**Struktur Saat Ini:**
-
-```text
-lib/
-├── core/       (Terdapat auth_service.dart, dashboard_service.dart)
-├── interface/  (Terdapat dashboard_page.dart, login_page.dart, dll)
-├── models/
-├── providers/
-├── repositories/
-└── main.dart
-```
-
-**Tugas Anda:** Ubah struktur folder menjadi seperti di bawah ini. Pindahkan file ke tempat yang sesuai dan perbaiki semua _imports_ yang _error_. hapus jika tidak berguna
-
-**Target Struktur Folder Baru:**
-
-```text
-lib/
-├── core/                   # HANYA untuk kebutuhan lintas fitur
-│   ├── constants/          # constants.dart, api_endpoints.dart
-│   ├── theme/              # app_theme.dart, app_colors.dart
-│   └── utils/              # logger.dart
-├── data/                   # Global data sources (jika diperlukan)
-│   └── local/              # session_service.dart
-├── features/               # Modul berbasis fitur
-│   ├── auth/               # Fitur Login/Auth
-│   │   ├── models/         # user_model.dart
-│   │   ├── providers/      # auth_provider.dart
-│   │   ├── repositories/   # auth_repository.dart
-│   │   ├── services/       # auth_service.dart
-│   │   └── ui/             # login_page.dart & komponen UI auth lainnya
-│   └── dashboard/          # Fitur Dashboard
-│       ├── models/         # dashboard_model.dart
-│       ├── providers/      # dashboard_provider.dart
-│       ├── repositories/   # dashboard_repository.dart
-│       ├── services/       # dashboard_service.dart
-│       └── ui/             # dashboard_page.dart, widgets/, platform specific UI
-└── main.dart               # Entry point & Setup DI
-```
-
-### Langkah Kerja (Checklist untuk Junior Dev):
-
-- [ ] Buat kerangka folder baru (`lib/features/auth/...`, `lib/features/dashboard/...`, dll).
-- [ ] Pindahkan `auth_service.dart` dari `core/` ke `features/auth/services/`.
-- [ ] Pindahkan `dashboard_service.dart` dari `core/` ke `features/dashboard/services/`.
-- [ ] Pindahkan model, provider, dan repository ke folder _feature_ masing-masing.
-- [ ] Pindahkan halaman (pages) dari `interface/` ke folder `ui/` pada _feature_ yang bersesuaian.
-- [ ] Perbaiki semua _error import_ di seluruh file.
-- [ ] Implementasikan Dependency Injection pada `main.dart` seperti yang disarankan di Poin 2B.
-- [ ] Jalankan `fvm flutter clean` dan `fvm flutter pub get`.
-- [ ] Pastikan aplikasi dapat di-_build_ dan berjalan dengan normal tanpa error.
-- [ ] Jalankan unit test dengan perintah `fvm flutter test` untuk memastikan _logic_ tidak rusak akibat perpindahan folder.
+**Action Items:**
+- [ ] Tambahkan package `go_router` menggunakan perintah: `fvm flutter pub add go_router`.
+- [ ] Buat file `lib/core/routing/app_router.dart`.
+- [ ] Konfigurasikan `GoRouter` dengan rute `/` (mengarahkan ke `LoginPage`) dan `/dashboard` (mengarahkan ke `DashboardPage`).
+- [ ] Pindahkan *logic* dari `AuthWrapper` ke `redirect` handler di `go_router` (apabila user ter-autentikasi dan berada di `/`, arahkan ke `/dashboard`, dan sebaliknya).
+- [ ] Hapus `AuthWrapper` jika sudah tergantikan sepenuhnya oleh mekanisme *redirect* dari router.
+- [ ] Ganti `MaterialApp` dengan `MaterialApp.router` di `app.dart`.
 
 ---
+
+Terima kasih atas bantuan dan dedikasinya. Pastikan untuk menjalankan `fvm flutter analyze` dan `fvm flutter test` sebelum membuat Pull Request untuk memastikan tidak ada *breaking changes*. 
+
+Jika ada yang kurang jelas mengenai arsitektur atau *business requirements*, feel free untuk bertanya di kolom komentar.
+
+Happy coding! 🚀

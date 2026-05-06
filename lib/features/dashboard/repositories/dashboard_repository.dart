@@ -4,6 +4,7 @@ import '../services/dashboard_service.dart';
 
 abstract class IDashboardRepository {
   Future<Result<DashboardModel>> getDashboardData(String token);
+  Future<Result<String>> getSsoTicket(String token);
 }
 
 class DashboardRepository implements IDashboardRepository {
@@ -14,5 +15,10 @@ class DashboardRepository implements IDashboardRepository {
   @override
   Future<Result<DashboardModel>> getDashboardData(String token) {
     return _dashboardService.getDashboardData(token);
+  }
+
+  @override
+  Future<Result<String>> getSsoTicket(String token) {
+    return _dashboardService.fetchSsoTicket(token);
   }
 }
