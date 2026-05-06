@@ -18,10 +18,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = context.read<AuthProvider>().currentUser;
-      if (user != null) {
-        context.read<DashboardProvider>().fetchData(user.token);
-      }
+      context.read<DashboardProvider>().fetchData();
     });
   }
 
@@ -44,7 +41,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (dashboard.error != null || dashboard.dashboardData == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        body: _buildErrorView(context, dashboard, auth.currentUser!.token),
+        body: _buildErrorView(context, dashboard),
       );
     }
 
@@ -62,7 +59,6 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildErrorView(
     BuildContext context,
     DashboardProvider dashboard,
-    String token,
   ) {
     return Center(
       child: Column(
@@ -80,7 +76,7 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           const SizedBox(height: 32),
           ElevatedButton(
-            onPressed: () => dashboard.fetchData(token),
+            onPressed: () => dashboard.fetchData(),
             style: ElevatedButton.styleFrom(minimumSize: const Size(200, 56)),
             child: const Text('Retry Connection'),
           ),

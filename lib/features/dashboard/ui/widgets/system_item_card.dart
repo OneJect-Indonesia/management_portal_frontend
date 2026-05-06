@@ -49,17 +49,9 @@ class SystemItemCard extends StatelessWidget {
             );
 
             try {
-              // Ambil token dari AuthProvider
-              final authProvider = context.read<AuthProvider>();
-              final token = authProvider.currentUser?.token;
-
-              if (token == null) {
-                throw Exception('No authentication token found');
-              }
-
               // Panggil API getSsoTicket melalui Provider
               final dashboardProvider = context.read<DashboardProvider>();
-              final result = await dashboardProvider.getSsoTicket(token);
+              final result = await dashboardProvider.getSsoTicket();
 
               if (!result.isSuccess || result.data == null) {
                 throw Exception(result.error ?? 'Failed to get SSO ticket');

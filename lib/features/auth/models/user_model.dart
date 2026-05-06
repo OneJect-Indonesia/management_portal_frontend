@@ -4,7 +4,7 @@ class UserModel {
   final String fullName;
   final String department;
   final String role;
-  final String token;
+  final String? token;
 
   UserModel({
     required this.id,
@@ -12,17 +12,17 @@ class UserModel {
     required this.fullName,
     required this.department,
     required this.role,
-    required this.token,
+    this.token,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json, String token) {
+  factory UserModel.fromJson(Map<String, dynamic> json, [String? token]) {
     return UserModel(
       id: json['id'],
       nik: json['nik'],
       fullName: json['full_name'],
       department: json['department'],
       role: json['role'],
-      token: token,
+      token: token ?? json['token'],
     );
   }
 
@@ -33,7 +33,7 @@ class UserModel {
       'full_name': fullName,
       'department': department,
       'role': role,
-      'token': token,
+      if (token != null) 'token': token,
     };
   }
 }

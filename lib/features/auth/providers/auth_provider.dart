@@ -20,20 +20,32 @@ class AuthProvider extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
   bool get isAuthenticated => _currentUser != null;
 
-  /// Call this when the app starts to auto-login based on Secure Storage
+  /// Call this when the app starts to auto-login based on Cookie
   Future<void> checkSession() async {
-    _currentUser = await _sessionService.getSession();
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _authRepository.getMe();
+    if (result.isSuccess && result.data != null) {
+      _currentUser = result.data;
+      await _sessionService.saveSession(_currentUser!);
+    } else {
+      _currentUser = null;
+      await _sessionService.clearSession();
+    }
+
     _isInitialized = true;
+    _isLoading = false;
     notifyListeners();
   }
 
-  /// Update the current user manually (e.g. from splash screen after token verification)
+  /// Update the current user manually
   void setCurrentUser(UserModel? user) {
     _currentUser = user;
     notifyListeners();
   }
 
-  /// Perform login and save to session
+  /// Perform login and save profile to session cache
   Future<Result<UserModel>> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -42,6 +54,7 @@ class AuthProvider extends ChangeNotifier {
 
     if (result.isSuccess && result.data != null) {
       _currentUser = result.data;
+      // We only save profile data for caching, cookie is handled by Dio
       await _sessionService.saveSession(_currentUser!);
     }
 
@@ -52,8 +65,14 @@ class AuthProvider extends ChangeNotifier {
 
   /// Logout and clear session
   Future<void> logout() async {
+    _isLoading = true;
+    notifyListeners();
+
+    await _authRepository.logout();
     await _sessionService.clearSession();
     _currentUser = null;
+
+    _isLoading = false;
     notifyListeners();
   }
 }

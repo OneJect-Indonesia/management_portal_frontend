@@ -32,9 +32,7 @@ class SessionService implements ISessionService {
       final userString = await _storage.read(key: _userKey);
       if (userString != null && userString.isNotEmpty) {
         final decoded = jsonDecode(userString);
-        // The token was also saved inside the JSON object by toJson()
-        // so we can extract it and pass it to fromJson().
-        return UserModel.fromJson(decoded, decoded['token'] ?? '');
+        return UserModel.fromJson(decoded);
       }
     } catch (e) {
       debugPrint('[SessionService] Error reading session: $e');

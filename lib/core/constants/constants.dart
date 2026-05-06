@@ -5,6 +5,8 @@ class AppConstants {
   
   // Auth Endpoints
   static String get loginEndpoint => '$apiBaseUrl/auth/login';
+  static String get logoutEndpoint => '$apiBaseUrl/auth/logout';
+  static String get meEndpoint => '$apiBaseUrl/me';
   static String get ssoTicketEndpoint => '$apiBaseUrl/auth/sso-ticket';
   
   // Dashboard Endpoints
