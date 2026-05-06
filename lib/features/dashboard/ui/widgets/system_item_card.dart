@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/dashboard_model.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
-import '../../services/dashboard_service.dart';
 
 class SystemItemCard extends StatelessWidget {
   final MenuItem item;
@@ -49,20 +49,9 @@ class SystemItemCard extends StatelessWidget {
             );
 
             try {
-              // Ambil token dari AuthProvider
-              final authProvider = Provider.of<AuthProvider>(
-                context,
-                listen: false,
-              );
-              final token = authProvider.currentUser?.token;
-
-              if (token == null) {
-                throw Exception('No authentication token found');
-              }
-
-              // Panggil API getSsoTicket
-              final dashboardService = context.read<DashboardService>();
-              final result = await dashboardService.fetchSsoTicket(token);
+              // Panggil API getSsoTicket melalui Provider
+              final dashboardProvider = context.read<DashboardProvider>();
+              final result = await dashboardProvider.getSsoTicket();
 
               if (!result.isSuccess || result.data == null) {
                 throw Exception(result.error ?? 'Failed to get SSO ticket');

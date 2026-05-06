@@ -1,36 +1,19 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/constants/constants.dart';
 import '../../../core/utils/result.dart';
+import '../../../core/config/api_config.dart';
 import '../models/dashboard_model.dart';
 
-// Exceptions removed in favor of Result pattern
-
 class DashboardService {
-  final http.Client _client;
-
-  DashboardService({http.Client? client}) : _client = client ?? http.Client();
-
-  Future<Result<DashboardModel>> getDashboardData(String token) async {
+  Future<Result<DashboardModel>> getDashboardData() async {
     try {
       Log.d('[DashboardService] Fetching dashboard Data...');
-
-      final response = await _client.get(
-        Uri.parse(AppConstants.dashboardEndpoint),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      ).timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
-
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        return Result.failure('Unauthorized');
-      }
+      final dio = await ApiConfig.dio;
+      final response = await dio.get(AppConstants.dashboardEndpoint);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data;
         if (data['status'] == 'success') {
           final rawList = data['data'] as List<dynamic>;
           final model = DashboardModel(
@@ -43,38 +26,37 @@ class DashboardService {
       }
 
       return Result.failure('Failed with status: ${response.statusCode}');
-      
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+        return Result.failure('Unauthorized');
+      }
+      Log.e('[DashboardService] DIO ERROR: ${e.message}');
+      return Result.failure(e.message ?? 'Unknown error');
     } catch (e) {
       Log.e('[DashboardService] ERROR: $e');
       return Result.failure(e.toString());
     }
   }
 
-  Future<Result<String>> fetchSsoTicket(String token) async {
+  Future<Result<String>> fetchSsoTicket() async {
     try {
       Log.d('[DashboardService] Fetching SSO Ticket...');
-
-      final response = await _client.post(
-        Uri.parse(AppConstants.ssoTicketEndpoint),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      ).timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
-
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        return Result.failure('Unauthorized');
-      }
+      final dio = await ApiConfig.dio;
+      final response = await dio.post(AppConstants.ssoTicketEndpoint);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data;
         if (data['status'] == 'success') {
           return Result.success(data['data']['ticket'] as String);
         }
       }
 
       return Result.failure('Failed to generate ticket with status: ${response.statusCode}');
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+        return Result.failure('Unauthorized');
+      }
+      return Result.failure(e.message ?? 'Unknown error');
     } catch (e) {
       Log.e('[DashboardService] ERROR: $e');
       return Result.failure(e.toString());

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/result.dart';
 import '../models/dashboard_model.dart';
 import '../repositories/dashboard_repository.dart';
 
@@ -17,13 +18,13 @@ class DashboardProvider extends ChangeNotifier {
   String? get error => _error;
   String? get selectedCategory => _selectedCategory;
 
-  Future<void> fetchData(String token) async {
+  Future<void> fetchData() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final result = await _dashboardRepository.getDashboardData(token);
+      final result = await _dashboardRepository.getDashboardData();
 
       if (result.isSuccess && result.data != null) {
         final dashboardModel = result.data!;
@@ -48,5 +49,9 @@ class DashboardProvider extends ChangeNotifier {
   void selectCategory(String category) {
     _selectedCategory = category;
     notifyListeners();
+  }
+
+  Future<Result<String>> getSsoTicket() async {
+    return await _dashboardRepository.getSsoTicket();
   }
 }

@@ -4,8 +4,8 @@ import '../services/auth_service.dart';
 
 abstract class IAuthRepository {
   Future<Result<UserModel>> login(String email, String password);
-  Future<void> logout();
-  Future<UserModel?> getSession();
+  Future<Result<void>> logout();
+  Future<Result<UserModel>> getMe();
 }
 
 class AuthRepository implements IAuthRepository {
@@ -19,12 +19,12 @@ class AuthRepository implements IAuthRepository {
   }
 
   @override
-  Future<void> logout() {
+  Future<Result<void>> logout() {
     return _authService.logout();
   }
 
   @override
-  Future<UserModel?> getSession() {
-    return _authService.getSession();
+  Future<Result<UserModel>> getMe() {
+    return _authService.getMe();
   }
 }

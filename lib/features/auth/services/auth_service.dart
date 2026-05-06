@@ -1,63 +1,85 @@
-import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:device_info_plus/device_info_plus.dart';
 import '../../../core/constants/constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/result.dart';
+import '../../../core/config/api_config.dart';
 import '../models/user_model.dart';
 
 class AuthService {
-  final http.Client _client;
   final DeviceInfoPlugin _deviceInfo;
 
-  AuthService({http.Client? client, DeviceInfoPlugin? deviceInfo})
-      : _client = client ?? http.Client(),
-        _deviceInfo = deviceInfo ?? DeviceInfoPlugin();
+  AuthService({DeviceInfoPlugin? deviceInfo})
+      : _deviceInfo = deviceInfo ?? DeviceInfoPlugin();
 
   Future<Result<UserModel>> login(String email, String password) async {
     try {
+      final dio = await ApiConfig.dio;
       final deviceName = await _getDeviceName();
 
-      final response = await _client.post(
-        Uri.parse(AppConstants.loginEndpoint),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
+      final response = await dio.post(
+        AppConstants.loginEndpoint,
+        data: {
           'email': email,
           'password': password,
           'device_name': deviceName,
-        }),
-      ).timeout(const Duration(seconds: AppConstants.apiTimeoutSeconds));
+        },
+      );
 
-      final data = jsonDecode(response.body);
+      final data = response.data;
 
       if (response.statusCode == 200 && data['status'] == 'success') {
         final userData = data['data']['user'];
-        final token = data['data']['token'];
-        final user = UserModel.fromJson(userData, token);
+        final user = UserModel.fromJson(userData, data['data']['token']);
         return Result.success(user);
       } else {
         final message = data['message'] ?? 'Login failed';
         Log.e('[AuthService] Login failed: $message');
         return Result.failure(message);
       }
+    } on DioException catch (e) {
+      final message = e.response?.data?['message'] ?? 'Connection error: ${e.message}';
+      Log.e('[AuthService] Dio error: $message');
+      return Result.failure(message);
     } catch (e) {
-      Log.e('[AuthService] Connection error: $e');
-      return Result.failure('Connection error: $e');
+      Log.e('[AuthService] Unexpected error: $e');
+      return Result.failure('Unexpected error: $e');
     }
   }
 
-  Future<void> logout() async {
-    // Implement API logout if needed
+  Future<Result<UserModel>> getMe() async {
+    try {
+      final dio = await ApiConfig.dio;
+      final response = await dio.get(AppConstants.meEndpoint);
+      final data = response.data;
+
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        final userData = data['data'];
+        final user = UserModel.fromJson(userData);
+        return Result.success(user);
+      } else {
+        return Result.failure(data['message'] ?? 'Failed to retrieve user data');
+      }
+    } on DioException catch (e) {
+      return Result.failure(e.response?.data?['message'] ?? 'Auth check failed');
+    } catch (e) {
+      return Result.failure('Session check error: $e');
+    }
   }
 
-  Future<UserModel?> getSession() async {
-    // This is handled by SessionService, but we can put logic here if needed
-    return null;
+  Future<Result<void>> logout() async {
+    try {
+      final dio = await ApiConfig.dio;
+      final response = await dio.post(AppConstants.logoutEndpoint);
+      if (response.statusCode == 200) {
+        return Result.success(null);
+      }
+      return Result.failure('Logout failed');
+    } catch (e) {
+      return Result.failure('Logout error: $e');
+    }
   }
 
   Future<String> _getDeviceName() async {
@@ -74,17 +96,8 @@ class AuthService {
         } else if (Platform.isIOS) {
           final iosInfo = await _deviceInfo.iosInfo;
           deviceName = iosInfo.utsname.machine;
-        } else if (Platform.isLinux) {
-          final linuxInfo = await _deviceInfo.linuxInfo;
-          deviceName = linuxInfo.prettyName;
-        } else if (Platform.isMacOS) {
-          final macOsInfo = await _deviceInfo.macOsInfo;
-          deviceName = macOsInfo.computerName;
-        } else if (Platform.isWindows) {
-          final windowsInfo = await _deviceInfo.windowsInfo;
-          deviceName = windowsInfo.computerName;
         } else {
-          deviceName = 'Unknown Device';
+          deviceName = 'Other Mobile/Desktop';
         }
       }
     } catch (e) {
