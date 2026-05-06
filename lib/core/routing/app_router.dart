@@ -11,7 +11,7 @@ class AppRouter {
   static GoRouter router(AuthProvider authProvider) {
     return GoRouter(
       navigatorKey: _rootNavigatorKey,
-      initialLocation: '/',
+      initialLocation: '/login',
       refreshListenable: authProvider,
       redirect: (context, state) {
         final isAuthenticated = authProvider.isAuthenticated;
@@ -28,6 +28,10 @@ class AppRouter {
         return null;
       },
       routes: [
+        // GoRoute(
+        //   path: '/',
+        //   redirect: (_, __) => '/dashboard',
+        // ),
         GoRoute(
           path: '/dashboard',
           builder: (context, state) => const DashboardPage(),
