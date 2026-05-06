@@ -9,6 +9,7 @@ class AuthProvider extends ChangeNotifier {
   final ISessionService _sessionService;
   UserModel? _currentUser;
   bool _isLoading = false;
+  bool _isInitialized = false;
 
   AuthProvider(this._authRepository, this._sessionService) {
     checkSession();
@@ -16,11 +17,13 @@ class AuthProvider extends ChangeNotifier {
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+  bool get isInitialized => _isInitialized;
   bool get isAuthenticated => _currentUser != null;
 
   /// Call this when the app starts to auto-login based on Secure Storage
   Future<void> checkSession() async {
     _currentUser = await _sessionService.getSession();
+    _isInitialized = true;
     notifyListeners();
   }
 
