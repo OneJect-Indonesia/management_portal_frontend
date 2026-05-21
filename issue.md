@@ -1,36 +1,34 @@
-# Dashboard Web Refactor & Update
+# Login Feature Update
 
-## 1. Best Practice Refactor
-**Goal:** Clean code. Separation of concerns.
-**Action:**
-- Move `_buildUserHeader` from `dashboard_page_web.dart` to standalone widget `user_header_sidebar.dart`.
-- Extract `_handleMenuTap` logic from `honeycomb_menu.dart` to provider or controller. UI must stay dumb. Use `const` everywhere possible.
+## 1. Task: Halaman Login Utama dengan Glassmorphism
+**Goal:** Buat halaman login utama (web dan mobile) yang menerapkan tema glassmorphism konsisten dengan dashboard (menggunakan efek backdrop blur).
 
-## 2. Bugs & Solutions
-**Bug 1:** Infinite loading dialog. If `getSsoTicket()` fails early, `Navigator.of(context).pop()` never runs.
-**Solution:** Move `Navigator.of(context).pop()` to `finally` block in `_handleMenuTap`.
+**Design UI/UX Pro Max Guidelines:**
+- **Style:** Glassmorphism (Frosted glass, transparent, blurred background, Z-depth, light reflection, Z-depth).
+- **Typography:** Fira Sans untuk Body Text dan Fira Code untuk Headers/Numbers (memberikan kesan dashboard, technical, dan presisi).
+- **Efek Wajib:** Backdrop blur (sigma 10-20px), subtle border putih (1px solid dengan opacity 0.2), bayangan lembut untuk efek Z-depth.
+- **Logo:** Gunakan asset `assets/images/Oneject-Horizontal.png` di atas form login.
 
-**Bug 2:** Async gap context warning. `BuildContext` used after await.
-**Solution:** Cache provider instance before await. Check `if (!context.mounted) return;` before showing snackbar or popping dialog.
+## 2. Pembaruan Tema Warna (Warna Utama)
+- **Action:** Update file `lib/core/theme/app_colors.dart` untuk menggunakan kombinasi warna berikut sebagai warna utama (primary, secondary, accent, dll):
+  - `#4DA8CF` (Bisa digunakan untuk Primary / Button / Accent)
+  - `#5B5856` (Bisa digunakan untuk Text Secondary / Dark borders)
+  - `#3F8F81` (Bisa digunakan untuk Success state / Highlights)
+- Pastikan warna tersebut diimplementasikan di komponen login page.
 
-## 3. Feature Tasks
-**Task A: Remove Center Hexagon Hover Scale**
-- Modify `EntranceHexCell` in `honeycomb_menu.dart`.
-- Add `bool disableHoverScale` parameter.
-- Pass `disableHoverScale: true` when `item['type'] == 'center'`.
-- In `EntranceHexCell` build, ignore `AnimatedScale` (force scale 1.0) if flag true.
+## 3. Spesifikasi Implementasi Halaman Login
+- **Background:** Gunakan latar belakang yang dinamis, bisa berupa gambar abstrak (jika ada) atau gradien warna utama di atas agar efek blur glassmorphism terlihat mewah.
+- **Card Login:**
+  - Gunakan `BackdropFilter` dengan `ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15)`.
+  - Background color Card: `Colors.white.withValues(alpha: 0.1)` atau `0.08`.
+  - Border card: `Border.all(color: Colors.white.withValues(alpha: 0.2))`.
+  - BoxShadow: blur radius besar dengan opasitas rendah.
+- **Input Fields & Buttons:**
+  - Sesuaikan text field agar berpadu dengan tema glass (background transparan atau fill color sangat tipis).
+  - Tombol submit/login harus menggunakan warna utama (seperti `#4DA8CF`) dengan efek hover yang mulus (150-300ms transition) dan kursor pointer.
 
-**Task B: Header to Left Sidebar**
-- Modify `dashboard_page_web.dart`.
-- Change base layout from `Column` to `Row`.
-- Redesign `_buildUserHeader` to vertical sidebar format. Wrap in fixed-width container.
-
-**Task C: Increase Hexagon Size**
-- Modify `dashboard_page_web.dart`.
-- Change `hexSize: 75.0` in `HoneycombMenu` to `110.0` (or appropriate larger value).
-
-## Notes for Implementer
-- Need docs? Use Dart MCP (`mcp_dart-mcp-server_...` tools).
-- Terminal commands: Must use `fvm`. Example: `fvm flutter pub get`.
-- No new libraries needed for this task. Native Flutter + existing packages sufficient.
-- Final step: Run `fvm flutter analyze`. Fix all warnings. Zero errors allowed.
+## 4. Notes for Implementer
+- Terminal commands: Wajib gunakan `fvm`.
+- Untuk referensi widget glassmorphism, bisa cek implementasi di `lib/features/dashboard/ui/widgets/logout_confirmation_dialog.dart` atau `user_header_sidebar.dart`.
+- Gunakan tool MCP Dart untuk melihat dokumentasi API jika diperlukan.
+- Final step: Jalankan `fvm flutter analyze`. Pastikan tidak ada error atau warning (0 issues).

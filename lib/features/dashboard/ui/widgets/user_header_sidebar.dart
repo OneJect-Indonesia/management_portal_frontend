@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
+import 'logout_confirmation_dialog.dart';
 
 class UserHeaderSidebar extends StatelessWidget {
   final AuthProvider auth;
@@ -23,25 +24,28 @@ class UserHeaderSidebar extends StatelessWidget {
           width: 280,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: const BorderRadius.only(
               topRight: Radius.circular(32),
               bottomRight: Radius.circular(32),
             ),
             border: Border(
               right: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
-              top: BorderSide(color: Colors.white.withOpacity(0.2), width: 1.0),
+              top: BorderSide(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1.0,
+              ),
               bottom: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.0,
               ),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(5, 0),
               ),
@@ -68,10 +72,10 @@ class UserHeaderSidebar extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.08),
+                  color: Colors.white.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     width: 1,
                   ),
                 ),
@@ -84,14 +88,14 @@ class UserHeaderSidebar extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
-                            Colors.white.withOpacity(0.5),
-                            Colors.white.withOpacity(0.1),
+                            Colors.white.withValues(alpha: 0.5),
+                            Colors.white.withValues(alpha: 0.1),
                           ],
                         ),
                       ),
                       child: CircleAvatar(
                         radius: 40,
-                        backgroundColor: Colors.white.withOpacity(0.15),
+                        backgroundColor: Colors.white.withValues(alpha: 0.15),
                         child: const Icon(
                           Icons.person_rounded,
                           color: Colors.white,
@@ -123,7 +127,10 @@ class UserHeaderSidebar extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
-                    Divider(color: Colors.white.withOpacity(0.1), thickness: 1),
+                    Divider(
+                      color: Colors.white.withValues(alpha: .1),
+                      thickness: 1,
+                    ),
                     const SizedBox(height: 12),
                     _buildInfoRow(Icons.badge_rounded, 'NIK', user.nik),
                     const SizedBox(height: 8),
@@ -142,19 +149,29 @@ class UserHeaderSidebar extends StatelessWidget {
               MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
-                  onTap: () => auth.logout(),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => LogoutConfirmationDialog(
+                        onConfirm: () {
+                          Navigator.of(context).pop();
+                          auth.logout();
+                        },
+                      ),
+                    );
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.redAccent.withOpacity(0.3),
-                          Colors.red.withOpacity(0.1),
+                          Colors.redAccent.withValues(alpha: .3),
+                          Colors.red.withValues(alpha: .1),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.redAccent.withOpacity(0.4),
+                        color: Colors.redAccent.withValues(alpha: .4),
                         width: 1,
                       ),
                     ),
@@ -191,7 +208,7 @@ class UserHeaderSidebar extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white.withOpacity(0.6), size: 16),
+        Icon(icon, color: Colors.white.withValues(alpha: .6), size: 16),
         const SizedBox(width: 8),
         Text(
           '$label:',
