@@ -12,4 +12,7 @@ class AppColors {
   static const error = Color(0xFFEF4444);
   static const success = Color(0xFF10B981);
   static const cardBackground = Colors.white;
+  static const honeycombBg1 = Color(0xFF4DA8CF);
+  static const honeycombBg2 = Color(0xFF5B5856);
+  static const honeycombBg3 = Color(0xFF3F8F81);
 }

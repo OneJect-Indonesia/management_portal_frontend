@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
-import '../widgets/category_card.dart';
-import '../widgets/system_item_card.dart';
+import '../widgets/honeycomb_menu.dart';
+import '../widgets/user_header_sidebar.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class DashboardPageWeb extends StatelessWidget {
@@ -13,163 +13,44 @@ class DashboardPageWeb extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final dashboard = context.watch<DashboardProvider>();
-    final user = auth.currentUser!;
+
+    final allItems = dashboard.dashboardData!.categories.values
+        .expand((list) => list)
+        .toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Row(
-          children: [
-            // Left Sidebar
-            Container(
-              width: 400,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 32),
-                  _buildUserHeader(user.fullName, auth),
-                  const SizedBox(height: 40),
-                  const Text(
-                    'Application Categories',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                      letterSpacing: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: dashboard.dashboardData!.categories.length,
-                      itemBuilder: (context, index) {
-                        final category =
-                            dashboard.dashboardData!.categories.keys.elementAt(index);
-                        final items = dashboard.dashboardData!.categories[category]!;
-                        return CategoryCard(
-                          category: category,
-                          itemCount: items.length,
-                          isSelected: dashboard.selectedCategory == category,
-                          onTap: () => dashboard.selectCategory(category),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Right Content Area
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.cyan.shade50),
-                ),
-                child: dashboard.selectedCategory == null
-                    ? const Center(
-                        child: Text('Select a category to view systems'),
-                      )
-                    : _buildItemsList(
-                        dashboard.selectedCategory!,
-                        dashboard.dashboardData!.categories[dashboard.selectedCategory]!,
-                      ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserHeader(String name, AuthProvider auth) {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          child: const Icon(Icons.person_rounded, color: AppColors.primary),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Welcome back,',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.honeycombBg1,
+              AppColors.honeycombBg3,
+              AppColors.honeycombBg2,
             ],
           ),
         ),
-        IconButton(
-          onPressed: () => auth.logout(),
-          icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-          tooltip: 'Logout',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildItemsList(String category, List<dynamic> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(32.0),
+        child: SafeArea(
           child: Row(
             children: [
-              Text(
-                category.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${items.length} Systems',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+              // Glassmorphic Left Sidebar
+              UserHeaderSidebar(auth: auth),
+
+              // Centered Honeycomb Menu
+              Expanded(
+                child: Center(
+                  child: HoneycombMenu(
+                    items: allItems,
+                    hexSize: 110.0,
+                    gap: 12.0,
                   ),
                 ),
               ),
             ],
           ),
         ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return SystemItemCard(item: items[index]);
-            },
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
