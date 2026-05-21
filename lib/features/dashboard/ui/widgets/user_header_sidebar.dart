@@ -6,10 +6,7 @@ import '../../../auth/providers/auth_provider.dart';
 class UserHeaderSidebar extends StatelessWidget {
   final AuthProvider auth;
 
-  const UserHeaderSidebar({
-    super.key,
-    required this.auth,
-  });
+  const UserHeaderSidebar({super.key, required this.auth});
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +33,7 @@ class UserHeaderSidebar extends StatelessWidget {
                 color: Colors.white.withOpacity(0.2),
                 width: 1.5,
               ),
-              top: BorderSide(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.0,
-              ),
+              top: BorderSide(color: Colors.white.withOpacity(0.2), width: 1.0),
               bottom: BorderSide(
                 color: Colors.white.withOpacity(0.2),
                 width: 1.0,
@@ -57,18 +51,18 @@ class UserHeaderSidebar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Corporate logo at the top
-              Center(
-                child: Container(
-                  height: 80,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/Oneject-Vertical.png'),
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
+              // Center(
+              //   child: Container(
+              //     height: 80,
+              //     decoration: const BoxDecoration(
+              //       image: DecorationImage(
+              //         image: AssetImage('assets/images/Oneject-Vertical.png'),
+              //         fit: BoxFit.contain,
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(height: 40),
 
               // Profile Section card
               Container(
@@ -122,7 +116,8 @@ class UserHeaderSidebar extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.secondary, // Cyan accent color matches background beautifully
+                        color: AppColors
+                            .secondary, // Cyan accent color matches background beautifully
                         letterSpacing: 1.5,
                       ),
                       textAlign: TextAlign.center,
@@ -132,7 +127,11 @@ class UserHeaderSidebar extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildInfoRow(Icons.badge_rounded, 'NIK', user.nik),
                     const SizedBox(height: 8),
-                    _buildInfoRow(Icons.business_rounded, 'Dept', user.department),
+                    _buildInfoRow(
+                      Icons.business_rounded,
+                      'Dept',
+                      user.department,
+                    ),
                   ],
                 ),
               ),
@@ -162,7 +161,11 @@ class UserHeaderSidebar extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
-                        Icon(Icons.logout_rounded, color: Colors.white, size: 20),
+                        Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                         SizedBox(width: 12),
                         Text(
                           'Logout Session',
@@ -192,10 +195,7 @@ class UserHeaderSidebar extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           '$label:',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.5),
-            fontSize: 12,
-          ),
+          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
         ),
         const SizedBox(width: 4),
         Expanded(
