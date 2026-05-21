@@ -125,7 +125,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                                 ),
                                 const SizedBox(height: 40),
                                 const Text(
-                                  'PT Oneject Indonesia\nSystem Management Portal',
+                                  'PT Oneject Indonesia\nApplication Management Portal',
                                   style: TextStyle(
                                     fontSize: 40,
                                     fontWeight: FontWeight.bold,
@@ -249,7 +249,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                                       color: AppColors.white,
                                     ),
                                   )
-                                : const Text('Access Dashboard'),
+                                : const Text('Login'),
                           ),
                           const SizedBox(height: 40),
                           const Center(

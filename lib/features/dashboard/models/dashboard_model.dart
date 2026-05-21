@@ -41,7 +41,6 @@ class DashboardData {
 class MenuItem {
   final int id;
   final String menuName;
-  final int displayOrder;
   final bool isActive;
   final Module module;
   final Content content;
@@ -49,7 +48,6 @@ class MenuItem {
   MenuItem({
     required this.id,
     required this.menuName,
-    required this.displayOrder,
     required this.isActive,
     required this.module,
     required this.content,
@@ -64,7 +62,6 @@ class MenuItem {
     return MenuItem(
       id: json['id'] ?? 0,
       menuName: json['menu_name'] ?? '',
-      displayOrder: json['display_order'] ?? 0,
       isActive: isActive,
       module: Module.fromJson(json['module'] as Map<String, dynamic>? ?? {}),
       content: Content.fromJson(json['content'] as Map<String, dynamic>? ?? {}),
