@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/dashboard_model.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../auth/providers/auth_provider.dart';
 
 class SystemItemCard extends StatelessWidget {
   final MenuItem item;

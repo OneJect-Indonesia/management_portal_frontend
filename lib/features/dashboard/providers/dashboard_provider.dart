@@ -54,4 +54,12 @@ class DashboardProvider extends ChangeNotifier {
   Future<Result<String>> getSsoTicket() async {
     return await _dashboardRepository.getSsoTicket();
   }
+
+  Future<String> prepareSsoUrl(MenuItem item) async {
+    final result = await getSsoTicket();
+    if (!result.isSuccess || result.data == null) {
+      throw Exception(result.error ?? 'Failed to get SSO ticket');
+    }
+    return '${item.content.repo}/sso/verify?ticket=${result.data}';
+  }
 }

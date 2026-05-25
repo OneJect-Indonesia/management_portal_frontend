@@ -41,7 +41,6 @@ void main() {
           MenuItem(
             id: 1,
             menuName: 'System A',
-            displayOrder: 1,
             isActive: true,
             module: Module(
               id: 1,
@@ -60,7 +59,7 @@ void main() {
       },
     );
     when(() => mockDashboardProvider.dashboardData).thenReturn(mockData);
-    when(() => mockDashboardProvider.fetchData(any())).thenAnswer((_) async {});
+    when(() => mockDashboardProvider.fetchData()).thenAnswer((_) async {});
   });
 
   Widget createWidgetUnderTest() {
@@ -75,12 +74,11 @@ void main() {
     );
   }
 
-  testWidgets('DashboardPage shows user name and categories', (WidgetTester tester) async {
+  testWidgets('DashboardPage shows user name and honeycomb menu items', (WidgetTester tester) async {
     await tester.pumpWidget(createWidgetUnderTest());
 
     expect(find.text('Test User'), findsOneWidget);
-    expect(find.text('Application Categories'), findsOneWidget);
-    expect(find.text('CATEGORY 1'), findsWidgets); // One in list, one in title
+    expect(find.text('System A'), findsWidgets);
 
     // Check for logout button
     expect(find.byIcon(Icons.logout_rounded), findsOneWidget);

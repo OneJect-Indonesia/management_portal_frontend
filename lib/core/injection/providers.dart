@@ -17,10 +17,10 @@ class AppProviders {
 
     // Repositories
     ProxyProvider<AuthService, AuthRepository>(
-      update: (_, service, __) => AuthRepository(service),
+      update: (_, service, _) => AuthRepository(service),
     ),
     ProxyProvider<DashboardService, DashboardRepository>(
-      update: (_, service, __) => DashboardRepository(service),
+      update: (_, service, _) => DashboardRepository(service),
     ),
 
     // Providers

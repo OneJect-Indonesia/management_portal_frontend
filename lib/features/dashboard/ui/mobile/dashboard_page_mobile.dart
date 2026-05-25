@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
-import '../widgets/category_card.dart';
-import '../widgets/system_item_card.dart';
+import '../widgets/honeycomb_menu.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class DashboardPageMobile extends StatelessWidget {
@@ -15,45 +14,39 @@ class DashboardPageMobile extends StatelessWidget {
     final dashboard = context.watch<DashboardProvider>();
     final user = auth.currentUser!;
 
+    final allItems = dashboard.dashboardData!.categories.values
+        .expand((list) => list)
+        .toList();
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.honeycombBg1,
+              AppColors.honeycombBg3,
+              AppColors.honeycombBg2,
+            ],
+          ),
+        ),
+        child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 32),
-              _buildUserHeader(user.fullName, auth),
-              const SizedBox(height: 40),
-              const Text(
-                'Application Categories',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 1.1,
-                ),
+              // Top Glassmorphic Header Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                child: _buildUserHeader(user.fullName, auth),
               ),
-              const SizedBox(height: 16),
+              // Centered Honeycomb Menu
               Expanded(
-                child: ListView.builder(
-                  itemCount: dashboard.dashboardData!.categories.length,
-                  itemBuilder: (context, index) {
-                    final category = dashboard.dashboardData!.categories.keys
-                        .elementAt(index);
-                    final items =
-                        dashboard.dashboardData!.categories[category]!;
-                    return CategoryCard(
-                      category: category,
-                      itemCount: items.length,
-                      isSelected: dashboard.selectedCategory == category,
-                      onTap: () {
-                        dashboard.selectCategory(category);
-                        _showMobileItems(context, category, items);
-                      },
-                    );
-                  },
+                child: Center(
+                  child: HoneycombMenu(
+                    items: allItems,
+                    hexSize: 52.0,
+                    gap: 6.0,
+                  ),
                 ),
               ),
             ],
@@ -64,123 +57,61 @@ class DashboardPageMobile extends StatelessWidget {
   }
 
   Widget _buildUserHeader(String name, AuthProvider auth) {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          child: const Icon(Icons.person_rounded, color: AppColors.primary),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+          width: 1.5,
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Welcome back,',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        IconButton(
-          onPressed: () => auth.logout(),
-          icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-          tooltip: 'Logout',
-        ),
-      ],
-    );
-  }
-
-  void _showMobileItems(
-    BuildContext context,
-    String category,
-    List<dynamic> items,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: Colors.white.withOpacity(0.2),
+            child: const Icon(Icons.person_rounded, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome back,',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
-            Expanded(child: _buildItemsList(category, items)),
-          ],
-        ),
+          ),
+          IconButton(
+            onPressed: () => auth.logout(),
+            icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
+            tooltip: 'Logout',
+          ),
+        ],
       ),
     );
   }
-
-  Widget _buildItemsList(String category, List<dynamic> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Row(
-            children: [
-              Text(
-                category.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${items.length} Systems',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return SystemItemCard(item: items[index]);
-            },
-          ),
-        ),
-      ],
-    );
-  }
 }
+
