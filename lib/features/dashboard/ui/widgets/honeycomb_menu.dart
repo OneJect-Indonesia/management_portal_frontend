@@ -163,7 +163,7 @@ class _HoneycombMenuState extends State<HoneycombMenu> {
                   hexagon: hexagon,
                   fillStyle: const ImageFill(
                     AssetImage('assets/images/Oneject-Vertical.png'),
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                   ),
                   borderStyle: HexBorderStyle(
                     color: isHovered
@@ -239,16 +239,16 @@ class _HoneycombMenuState extends State<HoneycombMenu> {
                             color: isHovered
                                 ? Colors.white
                                 : Colors.white.withOpacity(0.9),
-                            size: 20,
+                            size: 28,
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Text(
                             menuItem.module.moduleName,
                             style: TextStyle(
                               color: isHovered
                                   ? Colors.white
                                   : Colors.white.withOpacity(0.9),
-                              fontSize: 10,
+                              fontSize: 13,
                               fontWeight: FontWeight.bold,
                               shadows: const [
                                 Shadow(

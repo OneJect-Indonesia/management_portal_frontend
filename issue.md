@@ -1,34 +1,42 @@
-# Login Feature Update
+# Issue: Login Page UI Fixes (Single Image Resolution)
 
-## 1. Task: Halaman Login Utama dengan Glassmorphism
-**Goal:** Buat halaman login utama (web dan mobile) yang menerapkan tema glassmorphism konsisten dengan dashboard (menggunakan efek backdrop blur).
+## Task 1 — Align Logo & Caption Evenly (Web & Mobile) [COMPLETED]
 
-**Design UI/UX Pro Max Guidelines:**
-- **Style:** Glassmorphism (Frosted glass, transparent, blurred background, Z-depth, light reflection, Z-depth).
-- **Typography:** Fira Sans untuk Body Text dan Fira Code untuk Headers/Numbers (memberikan kesan dashboard, technical, dan presisi).
-- **Efek Wajib:** Backdrop blur (sigma 10-20px), subtle border putih (1px solid dengan opacity 0.2), bayangan lembut untuk efek Z-depth.
-- **Logo:** Gunakan asset `assets/images/Oneject-Horizontal.png` di atas form login.
+**Perubahan yang telah diterapkan:**
+- **Web (`login_page_web.dart`):** Padding vertikal diubah menjadi `48`, jarak/gap `SizedBox` antara logo dan teks diubah menjadi `24`, serta `height: 1.5` ditambahkan pada style teks caption agar lebih renggang.
+- **Mobile (`login_page_mobile.dart`):** Jarak/gap `SizedBox` antara logo dan teks diubah menjadi `18`, serta `height: 1.5` ditambahkan pada style teks caption.
 
-## 2. Pembaruan Tema Warna (Warna Utama)
-- **Action:** Update file `lib/core/theme/app_colors.dart` untuk menggunakan kombinasi warna berikut sebagai warna utama (primary, secondary, accent, dll):
-  - `#4DA8CF` (Bisa digunakan untuk Primary / Button / Accent)
-  - `#5B5856` (Bisa digunakan untuk Text Secondary / Dark borders)
-  - `#3F8F81` (Bisa digunakan untuk Success state / Highlights)
-- Pastikan warna tersebut diimplementasikan di komponen login page.
+---
 
-## 3. Spesifikasi Implementasi Halaman Login
-- **Background:** Gunakan latar belakang yang dinamis, bisa berupa gambar abstrak (jika ada) atau gradien warna utama di atas agar efek blur glassmorphism terlihat mewah.
-- **Card Login:**
-  - Gunakan `BackdropFilter` dengan `ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15)`.
-  - Background color Card: `Colors.white.withValues(alpha: 0.1)` atau `0.08`.
-  - Border card: `Border.all(color: Colors.white.withValues(alpha: 0.2))`.
-  - BoxShadow: blur radius besar dengan opasitas rendah.
-- **Input Fields & Buttons:**
-  - Sesuaikan text field agar berpadu dengan tema glass (background transparan atau fill color sangat tipis).
-  - Tombol submit/login harus menggunakan warna utama (seperti `#4DA8CF`) dengan efek hover yang mulus (150-300ms transition) dan kursor pointer.
+## Task 2 — Perbaiki Gambar Pecah (Single High-Resolution Image)
 
-## 4. Notes for Implementer
-- Terminal commands: Wajib gunakan `fvm`.
-- Untuk referensi widget glassmorphism, bisa cek implementasi di `lib/features/dashboard/ui/widgets/logout_confirmation_dialog.dart` atau `user_header_sidebar.dart`.
-- Gunakan tool MCP Dart untuk melihat dokumentasi API jika diperlukan.
-- Final step: Jalankan `fvm flutter analyze`. Pastikan tidak ada error atau warning (0 issues).
+**Problem:** Gambar logo pecah pada layar high-DPI (Retina/HiDPI) karena file asset yang digunakan memiliki resolusi asli yang terlalu rendah (hanya seukuran display logical-nya).
+
+**Solusi (Menggunakan 1 Gambar Resolusi Tinggi):**
+Kita tidak perlu menggunakan folder sub-resolusi `2.0x/` dan `3.0x/`. Cukup gunakan **satu file gambar beresolusi tinggi** langsung di folder utama `assets/images/` dan biarkan Flutter melakukan downscaling secara otomatis dengan kualitas tinggi.
+
+### Langkah-langkah:
+
+1. **Siapkan Gambar High-Res:**
+   Ekspor atau buat file logo dengan resolusi asli yang tinggi, misalnya:
+   - `Oneject-Vertical.png` → Resolusi asli sekitar **512px × 512px** atau lebih (akan ditampilkan di Web dengan `height: 130`).
+   - `Oneject-Logo-Horizontal.png` → Resolusi asli sekitar **512px × 150px** atau lebih (akan ditampilkan di Mobile dengan `height: 70`).
+
+2. **Timpa File Lama:**
+   Simpan langsung file beresolusi tinggi tersebut ke:
+   - `assets/images/Oneject-Vertical.png`
+   - `assets/images/Oneject-Logo-Horizontal.png`
+
+3. **Konfigurasi Kode (Sudah Diterapkan):**
+   Di dalam kode, kita sudah menggunakan `filterQuality: FilterQuality.high` pada `Image.asset`. Flutter akan otomatis memperkecil (downscale) gambar beresolusi tinggi tersebut ke ukuran logical (`height: 130` / `height: 70`) dengan filter anti-aliasing berkualitas tinggi, sehingga gambar tetap tajam di layar biasa maupun layar Retina/HiDPI tanpa pecah.
+
+   Contoh kode yang sudah diterapkan:
+   ```dart
+   Image.asset(
+     'assets/images/Oneject-Vertical.png',
+     height: 130,
+     fit: BoxFit.contain,
+     filterQuality: FilterQuality.high, // Menjamin downscaling tetap tajam
+     ...
+   )
+   ```
