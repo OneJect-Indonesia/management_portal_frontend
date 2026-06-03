@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -90,10 +89,10 @@ class AuthService {
         final webBrowserInfo = await _deviceInfo.webBrowserInfo;
         deviceName = webBrowserInfo.userAgent ?? 'Web Browser';
       } else {
-        if (Platform.isAndroid) {
+        if (defaultTargetPlatform == TargetPlatform.android) {
           final androidInfo = await _deviceInfo.androidInfo;
           deviceName = '${androidInfo.brand} ${androidInfo.model}';
-        } else if (Platform.isIOS) {
+        } else if (defaultTargetPlatform == TargetPlatform.iOS) {
           final iosInfo = await _deviceInfo.iosInfo;
           deviceName = iosInfo.utsname.machine;
         } else {
