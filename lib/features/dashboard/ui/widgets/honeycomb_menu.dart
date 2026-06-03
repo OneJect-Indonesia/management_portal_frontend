@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -206,30 +205,17 @@ class _HoneycombMenuState extends State<HoneycombMenu> {
                     });
                   },
                   onTap: () => _handleMenuTap(context, menuItem),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween<double>(
-                      begin: 12.0,
-                      end: isHovered ? 25.0 : 12.0,
-                    ),
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, blurValue, child) {
-                      return BackdropFilter(
-                        filter: ui.ImageFilter.blur(
-                          sigmaX: blurValue,
-                          sigmaY: blurValue,
-                        ),
-                        child: child,
-                      );
-                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeOutCubic,
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      color: isHovered
-                          ? Colors.white.withOpacity(0.3)
-                          : Colors.white.withOpacity(0.15),
+                      decoration: BoxDecoration(
+                        color: isHovered
+                            ? Colors.white.withValues(alpha: 0.3)
+                            : Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -265,10 +251,9 @@ class _HoneycombMenuState extends State<HoneycombMenu> {
                         ],
                       ),
                     ),
-                  ),
-                );
-              }
-            },
+                  );
+                }
+              },
           ),
         );
 
@@ -467,5 +452,7 @@ class HexPathClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
+  bool shouldReclip(covariant HexPathClipper oldClipper) => 
+      oldClipper.hexagon.center != hexagon.center || 
+      oldClipper.hexagon.size != hexagon.size;
 }
