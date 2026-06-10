@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../widgets/honeycomb_menu.dart';
+import '../widgets/logout_confirmation_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class DashboardPageMobile extends StatelessWidget {
@@ -37,7 +38,7 @@ class DashboardPageMobile extends StatelessWidget {
               // Top Glassmorphic Header Bar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                child: _buildUserHeader(user.fullName, auth),
+                child: _buildUserHeader(context, user.fullName, auth),
               ),
               // Centered Honeycomb Menu
               Expanded(
@@ -56,7 +57,7 @@ class DashboardPageMobile extends StatelessWidget {
     );
   }
 
-  Widget _buildUserHeader(String name, AuthProvider auth) {
+  Widget _buildUserHeader(BuildContext context, String name, AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
@@ -105,7 +106,17 @@ class DashboardPageMobile extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () => auth.logout(),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => LogoutConfirmationDialog(
+                  onConfirm: () {
+                    Navigator.of(dialogContext).pop();
+                    auth.logout();
+                  },
+                ),
+              );
+            },
             icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
             tooltip: 'Logout',
           ),
