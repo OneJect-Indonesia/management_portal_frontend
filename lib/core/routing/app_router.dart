@@ -9,8 +9,10 @@ class AppRouter {
   static final GlobalKey<NavigatorState> _rootNavigatorKey =
       GlobalKey<NavigatorState>();
 
+  static GoRouter? _instance;
+
   static GoRouter router(AuthProvider authProvider) {
-    return GoRouter(
+    _instance ??= GoRouter(
       navigatorKey: _rootNavigatorKey,
       initialLocation: '/splash',
       refreshListenable: authProvider,
@@ -53,5 +55,6 @@ class AppRouter {
         GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       ],
     );
+    return _instance!;
   }
 }
